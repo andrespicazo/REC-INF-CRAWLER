@@ -1,14 +1,20 @@
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandLineSearchEngine {
 
-    // ndice invertido simulado
+    // Indice invertido cargado desde el archivo
     private static final Map<String, List<String>> invertedIndex = new HashMap<>();
 
     public static void main(String[] args) {
-        // Simulación de datos para el índice invertido
-        simulateIndex();
+        // Cargar el índice invertido desde el archivo
+        try {
+            loadIndexFromFile("utility/indice_invertido.txt");
+        } catch (IOException e) {
+            System.err.println("Error al cargar el índice invertido: " + e.getMessage());
+            return;
+        }
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Bienvenido al buscador de documentos.");
@@ -34,10 +40,26 @@ public class CommandLineSearchEngine {
         scanner.close();
     }
 
-    private static void simulateIndex() {
-        invertedIndex.put("ingenieria", Arrays.asList("doc1", "doc2"));
-        invertedIndex.put("informatica", Arrays.asList("doc2", "doc3"));
-        invertedIndex.put("sistemas", Arrays.asList("doc1", "doc3"));
+    private static void loadIndexFromFile(String fileName) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Parsear la línea del archivo
+                String[] parts = line.split(";");
+                if (parts.length < 3) continue; // Asegurarse de que la línea tiene formato válido
+
+                String term = parts[0]; // La palabra clave
+                // Extraer los documentos (nombre_documento-tf) como una lista
+                List<String> documents = new ArrayList<>();
+                for (int i = 2; i < parts.length; i++) {
+                    String docInfo = parts[i].split("-")[0]; // Solo tomamos el nombre del documento
+                    documents.add(docInfo);
+                }
+
+                // Guardar en el índice invertido
+                invertedIndex.put(term, documents);
+            }
+        }
     }
 
     private static List<String> performSearch(String query) {
@@ -57,7 +79,6 @@ public class CommandLineSearchEngine {
                     }).orElse(Collections.emptyList());
         } else if (query.contains("AND")) { // Búsqueda con AND
             String[] terms = query.split("\\s*AND\\s*");  // Se maneja AND con espacios opcionales
-            System.out.println(terms[0]);
             results = Arrays.stream(terms)
                     .map(String::trim)
                     .map(term -> invertedIndex.getOrDefault(term, Collections.emptyList()))
