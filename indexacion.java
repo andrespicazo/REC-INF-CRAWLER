@@ -99,7 +99,7 @@ public class indexacion {
             texto = texto + "\n";
         }
         // Escribo en el fichero
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("indice.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("utility/indice_invertido.txt"))) {
             writer.write(texto);
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,22 +146,5 @@ public class indexacion {
         calcular_idf();
         // Imprimo el fichero con el indice
         imprimir_indice();
-    }
-
-    public static void comprobarTerminosTfDocumentos() {
-        System.out.printf("%-20s %-20s %-10s %-10s%n", "Término", "Documento", "TF", "IDF");
-        System.out.println("---------------------------------------------------------------------");
-        for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
-            String termino = entry.getKey();
-            Tupla<Double, Map<String, Double>> tupla = entry.getValue();
-            Double idf = tupla.first;
-            Map<String, Double> documentosTf = tupla.second;
-
-            for (Map.Entry<String, Double> docEntry : documentosTf.entrySet()) {
-                String documento = docEntry.getKey();
-                Double tf = docEntry.getValue();
-                System.out.printf("%-20s %-20s %-10.4f %-10.4f%n", termino, documento, tf, idf);
-            }
-        }
     }
 }

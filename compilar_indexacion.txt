@@ -1,0 +1,2 @@
+javac -cp . .\indexacion.java .\utility\Tupla.java .\utility\preprocesado.java
+java -cp . .\indexacion.java
