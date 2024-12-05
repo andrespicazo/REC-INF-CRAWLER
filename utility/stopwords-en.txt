@@ -58,7 +58,6 @@ amongst
 amoungst
 amount
 an
-and
 announce
 another
 any
@@ -758,7 +757,6 @@ opened
 opening
 opens
 opposite
-or
 ord
 order
 ordered
