@@ -90,6 +90,7 @@ public class indexacion {
         // Recorro el indice
         for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
             String termino = entry.getKey();
+            System.out.println(termino + "\n");
             Tupla<Double, Map<String, Double>> tupla_actual = entry.getValue();
             Double idf = tupla_actual.first;
             Map<String, Double> documentos = tupla_actual.second;
@@ -98,6 +99,7 @@ public class indexacion {
                 texto = texto + documento.getKey() + "-" + documento.getValue() + ";";
             texto = texto + "\n";
         }
+        System.out.println("escrito");
         // Escribo en el fichero
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("utility/indice_invertido.txt"))) {
             writer.write(texto);
@@ -131,6 +133,7 @@ public class indexacion {
                         // Divido los terminos
                         dividir_en_terminos(contenido);
                         // Calculo el tf y empiezo a rellenar el indice
+                        System.out.println("Calculando el tf de cada termino del doc: " + documento.getName() + "\n");
                         calcular_tf(documento.getName());
                         // Borro el contenido del map auxiliar para que lo use el siguiente documento
                         terminos_map.clear();
@@ -142,9 +145,11 @@ public class indexacion {
                 }
             }
         }
+        System.out.println("Calculando el IDF de cada termino...\n");
         // Calculo el idf y completo el indice
         calcular_idf();
         // Imprimo el fichero con el indice
+        System.out.println("Guardando el indice invertido...\n");
         imprimir_indice();
     }
 }
