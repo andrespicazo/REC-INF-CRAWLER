@@ -27,6 +27,7 @@ public class preprocesado {
 
         cad = minusculas(cad);
         cad = eliminar_signos(cad);
+        cad = eliminar_barra_invertida(cad);
         cad = eliminar_numeros(cad);
         cad = eliminar_guiones(cad);
         cad = eliminar_espacios(cad);
@@ -37,13 +38,17 @@ public class preprocesado {
     }
 
     private static String eliminar_signos(String cad) {
-        Pattern pat = Pattern.compile("[!\"#$%&'()*+,./:;<=>?@\\[\\]^_`{|}~]");
+        Pattern pat = Pattern.compile("[!\"#$%&'()*+,./:;<=>?\\@\\[\\]^_`{|}~]");
         Matcher mat = pat.matcher(cad);
         return mat.replaceAll("");
     }
 
+    private static String eliminar_barra_invertida(String cad) {
+        return cad.replace("\\", " ");
+    }
+
     private static String eliminar_guiones(String cad) {
-        return cad.replaceAll("\\s-\\s", " ");
+        return cad.replaceAll("\\s-+\\s", " ");
     }
 
     private static String eliminar_numeros(String cad) {
