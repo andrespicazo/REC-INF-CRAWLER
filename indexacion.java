@@ -81,7 +81,11 @@ public class indexacion {
             Integer n = tupla_actual.second.size();
             // Calculo el idf y lo incluyo en el map
             Double a = (double) N / n;
-            tupla_actual.first = Math.log(a) / Math.log(2);
+            Double idf = Math.log(a) / Math.log(2);
+            tupla_actual.first = idf;
+            for (Map.Entry<String, Double> doc : tupla_actual.second.entrySet()) {
+                doc.setValue(doc.getValue() * idf);
+            }
         }
     }
 
