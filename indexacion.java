@@ -21,6 +21,8 @@ public class indexacion {
     private static Map<String, Integer> terminos_map = new HashMap<>();
     // Aqui almaceno el tf-ifd
     private static Map<String, Tupla<Double, Map<String, Double>>> tf_idf = new HashMap<String, Tupla<Double, Map<String, Double>>>();
+    // Aqui almaceno la longitud de cada documento
+    private static Map<String, Double> longitud = new HashMap<>();
 
     // Dividir texto en terminos y contar frecuencia en cada texto
     private static void dividir_en_terminos(String texto) {
@@ -71,7 +73,7 @@ public class indexacion {
         }
     }
 
-    private static void calcular_idf() {
+    private static void calcular_idf_y_longitud() {
         // Recorro todos los terminos del corpus
         for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
             // Extraigo la tupla formada por el IDF(actualmente 0) y el map con los
@@ -84,16 +86,24 @@ public class indexacion {
             Double idf = Math.log(a) / Math.log(2);
             tupla_actual.first = idf;
             for (Map.Entry<String, Double> doc : tupla_actual.second.entrySet()) {
-                doc.setValue(doc.getValue() * idf);
+                String docName = doc.getKey();
+                Double peso = doc.getValue() * idf;
+                doc.setValue(peso);
+                if (longitud.get(docName) != null)
+                    longitud.put(docName, longitud.get(docName) + peso * peso);
+                else
+                    longitud.put(docName, peso * peso);
             }
         }
+        for (Map.Entry<String, Double> doc : longitud.entrySet())
+            doc.setValue(Math.sqrt(doc.getValue()));
     }
 
-    private static void guardar_fichero() {
+    private static void guardar_indice() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("utility/indice_invertido.dat"))) {
             for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
                 String termino = entry.getKey();
-                //System.out.println(termino + "\n");
+                // System.out.println(termino + "\n");
                 Tupla<Double, Map<String, Double>> tupla_actual = entry.getValue();
                 Double idf = tupla_actual.first;
                 Map<String, Double> documentos = tupla_actual.second;
@@ -102,6 +112,19 @@ public class indexacion {
                     writer.write(documento.getKey() + "-" + documento.getValue() + ";");
                 writer.newLine();
             }
+            System.out.println("¡Indice invertido guardado exitosamente!\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void guardar_longitud() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("utility/longitud.dat"))) {
+            for (Map.Entry<String, Double> entry : longitud.entrySet()) {
+                writer.write(entry.getKey() + "=" + entry.getValue());
+                writer.newLine();
+            }
+            System.out.println("¡Longitud guardada exitosamente!\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -144,11 +167,13 @@ public class indexacion {
                 }
             }
         }
-        System.out.println("Calculando el IDF de cada termino...\n");
+        System.out.println("Calculando el IDF de cada termino y la longitud de cada documento...\n");
         // Calculo el idf y completo el indice
-        calcular_idf();
+        calcular_idf_y_longitud();
         // Imprimo el fichero con el indice
         System.out.println("Guardando el indice invertido...\n");
-        guardar_fichero();
+        guardar_indice();
+        System.out.println("Guardando la longitud de los documentos...\n");
+        guardar_longitud();
     }
 }
