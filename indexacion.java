@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import utility.Tupla;
 import utility.preprocesado;
+import utility.Stemmer;
 
 public class indexacion {
     // Numero de documentos
@@ -34,6 +35,12 @@ public class indexacion {
         terminos = listaTerminos.toArray(new String[0]);
         // Recorro todos los terminos
         for (String termino : terminos) {
+            //Aplico el algoritmo de stemming
+            Stemmer stemmer = new Stemmer();
+            char[] termArray = termino.toCharArray();
+            stemmer.add(termArray, termArray.length);
+            stemmer.stem();
+            termino = stemmer.toString();
             // Si no esta en el map
             if (terminos_map.get(termino) == null)
                 // Inicializo el valor a 1

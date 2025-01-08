@@ -23,8 +23,6 @@ public class preprocesado {
     }
 
     public static String procesar(String cad) {
-        // String[] terminos = new String[0];
-
         cad = minusculas(cad);
         cad = eliminar_signos(cad);
         cad = eliminar_barra_invertida(cad);
@@ -32,7 +30,6 @@ public class preprocesado {
         cad = eliminar_guiones(cad);
         cad = eliminar_espacios(cad);
         cad = eliminar_stopwords(cad);
-        //cad = steaming(cad);
 
         return cad;
     }
@@ -40,7 +37,7 @@ public class preprocesado {
     private static String eliminar_signos(String cad) {
         Pattern pat = Pattern.compile("[!\"#$%&'()*+,./:;<=>?\\@\\[\\]^_`{|}~]");
         Matcher mat = pat.matcher(cad);
-        return mat.replaceAll("");
+        return mat.replaceAll(" ");
     }
 
     private static String eliminar_barra_invertida(String cad) {
@@ -69,11 +66,7 @@ public class preprocesado {
         aux.removeAll(STOPWORDS);
         return aux.stream().collect(Collectors.joining(" "));
     }
-    /*
-     * private static String steaming(String cad) {
-     * return cad;
-     * }
-     */
+
     public static void main(String[] args) {
     }
 }
