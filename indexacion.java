@@ -21,7 +21,7 @@ public class indexacion {
     // posteriormente calcular el tf
     private static Map<String, Integer> terminos_map = new HashMap<>();
     // Aqui almaceno el tf-ifd
-    private static Map<String, Tupla<Double, Map<String, Double>>> tf_idf = new HashMap<String, Tupla<Double, Map<String, Double>>>();
+    private static Map<String, Tupla<Double, Map<String, Double>>> indice_invertido = new HashMap<String, Tupla<Double, Map<String, Double>>>();
     // Aqui almaceno la longitud de cada documento
     private static Map<String, Double> longitud = new HashMap<>();
 
@@ -65,14 +65,14 @@ public class indexacion {
             // Calculo el tf
             Double tf = 1 + Math.log(frecuencia) / Math.log(2);
             // Si no esta el termino en el mapa tf-idf lo inicializo vacio
-            if (!tf_idf.containsKey(termino)) {
+            if (!indice_invertido.containsKey(termino)) {
                 Map<String, Double> mapaInterno = new HashMap<>();
                 Tupla<Double, Map<String, Double>> nuevaTupla = new Tupla<>(0.0, mapaInterno);
                 // Inserta la nueva tupla en el mapa con la clave proporcionada
-                tf_idf.put(termino, nuevaTupla);
+                indice_invertido.put(termino, nuevaTupla);
             }
             // Recupero la tupla del termino actual
-            Tupla<Double, Map<String, Double>> tupla_actual = tf_idf.get(termino);
+            Tupla<Double, Map<String, Double>> tupla_actual = indice_invertido.get(termino);
             // Recupero el map donde guardo el documento y su tf
             Map<String, Double> map_actual = tupla_actual.second;
             // Guardo el id y el tf
@@ -82,8 +82,8 @@ public class indexacion {
 
     private static void calcular_idf_y_longitud() {
         // Recorro todos los terminos del corpus
-        for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
-            // Extraigo la tupla formada por el IDF(actualmente 0) y el map con los
+        for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : indice_invertido.entrySet()) {
+            // Extraigo la tupla formada por el IDF(inicialmente 0) y el map con los
             // documentos y el peso
             Tupla<Double, Map<String, Double>> tupla_actual = entry.getValue();
             // Obtengo el numero de documentos distintos en los que aparece el termino
@@ -94,8 +94,10 @@ public class indexacion {
             tupla_actual.first = idf;
             for (Map.Entry<String, Double> doc : tupla_actual.second.entrySet()) {
                 String docName = doc.getKey();
+                // sustituyo el tf por el peso del termino en el documento
                 Double peso = doc.getValue() * idf;
                 doc.setValue(peso);
+                // calculo de la longitud
                 if (longitud.get(docName) != null)
                     longitud.put(docName, longitud.get(docName) + peso * peso);
                 else
@@ -108,7 +110,7 @@ public class indexacion {
 
     private static void guardar_indice() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("utility/indice_invertido.dat"))) {
-            for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : tf_idf.entrySet()) {
+            for (Map.Entry<String, Tupla<Double, Map<String, Double>>> entry : indice_invertido.entrySet()) {
                 String termino = entry.getKey();
                 // System.out.println(termino + "\n");
                 Tupla<Double, Map<String, Double>> tupla_actual = entry.getValue();
