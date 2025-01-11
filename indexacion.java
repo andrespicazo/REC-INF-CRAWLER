@@ -35,7 +35,7 @@ public class indexacion {
         terminos = listaTerminos.toArray(new String[0]);
         // Recorro todos los terminos
         for (String termino : terminos) {
-            //Aplico el algoritmo de stemming
+            // Aplico el algoritmo de stemming
             Stemmer stemmer = new Stemmer();
             char[] termArray = termino.toCharArray();
             stemmer.add(termArray, termArray.length);
@@ -139,11 +139,7 @@ public class indexacion {
         }
     }
 
-    public static void main(String[] args) {
-        // En caso de que se indique se cambia el directorio del corpus
-        if (args.length > 0) {
-            corpus_path = args[0];
-        }
+    public static void indexar() {
         // Abro el directorio del corpus
         File dir = new File(corpus_path);
         // Compruebo que la direccion proporcionada (o por defecto) exista y si es un
@@ -184,5 +180,9 @@ public class indexacion {
         guardar_indice();
         System.out.println("Guardando la longitud de los documentos...\n");
         guardar_longitud();
+    }
+
+    public static void main(String[] args) {
+        indexar();
     }
 }
