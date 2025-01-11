@@ -1,3 +1,4 @@
+import utility.Stemmer;
 import utility.preprocesado;
 
 import java.io.*;
@@ -12,7 +13,7 @@ public class Buscador {
     public static void main(String[] args) {
         // Construir el índice desde el archivo en la carpeta "utility"
         try {
-            loadIndexFromFile("utility/indice_invertido.txt");
+            loadIndexFromFile("utility/indice_invertido.dat");
         } catch (IOException e) {
             System.err.println("Error al cargar el índice invertido: " + e.getMessage());
             return; // Termina el programa si no se puede cargar el archivo
@@ -74,6 +75,9 @@ public class Buscador {
     }
 
     private static Map<String, Double> rankDocuments(String query) {
+        // Crear una instancia del stemmer
+        Stemmer stemmer = new Stemmer();
+
         // Determinar el tipo de consulta
         boolean isAndQuery = query.contains("and");
         boolean isOrQuery = query.contains("or");
@@ -96,6 +100,11 @@ public class Buscador {
             term = term.trim();  // Limpiar posibles espacios extras
     
             if (term.isEmpty()) continue;  // Asegurarse de que no estamos procesando términos vacíos
+
+            // Aplicar stemming al término
+            stemmer.add(term.toCharArray(), term.length());
+            stemmer.stem();
+            term = stemmer.toString();  // Obtener la raíz del término
     
             List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
             Set<String> documentsForTerm = documentWeights.stream()
@@ -128,6 +137,9 @@ public class Buscador {
             term = term.trim();  // Limpiar espacios
     
             if (term.isEmpty()) continue;  // Saltar si el término está vacío
+
+            //
+            //
     
             List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
             for (DocumentWeight docWeight : documentWeights) {
