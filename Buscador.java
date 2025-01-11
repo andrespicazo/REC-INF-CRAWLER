@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CommandLineSearchEngine {
+public class Buscador {
 
     // Indice invertido construido desde el archivo
     private static final Map<String, List<DocumentWeight>> invertedIndex = new HashMap<>();
