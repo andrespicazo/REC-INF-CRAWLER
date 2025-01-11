@@ -1,2 +1,8 @@
+javac -cp ".;jsoup-1.18.1.jar" CorpusCrawler.java
+java -cp ".;jsoup-1.18.1.jar" CorpusCrawler
+
 javac -cp . .\indexacion.java .\utility\Tupla.java .\utility\Stemmer.java .\utility\preprocesado.java
 java -cp . .\indexacion.java
+
+javac Buscador.java
+java Buscador  
