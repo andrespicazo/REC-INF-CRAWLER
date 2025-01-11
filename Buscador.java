@@ -138,8 +138,10 @@ public class Buscador {
     
             if (term.isEmpty()) continue;  // Saltar si el término está vacío
 
-            //
-            //
+            // Aplicar stemming nuevamente (si es necesario) antes de calcular puntajes
+            stemmer.add(term.toCharArray(), term.length());
+            stemmer.stem();
+            term = stemmer.toString();
     
             List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
             for (DocumentWeight docWeight : documentWeights) {
