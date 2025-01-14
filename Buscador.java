@@ -21,7 +21,7 @@ public class Buscador {
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Bienvenido al buscador de documentos.");
-        System.out.println("Introduce una consulta (puedes usar operadores AND/OR o comillas para frases):");
+        System.out.println("Introduce una consulta (puedes usar operadores AND/OR):");
 
         while (true) {
             System.out.print("> ");
@@ -29,7 +29,7 @@ public class Buscador {
 
             // Salir si el usuario escribe "salir"
             if (query.equalsIgnoreCase("salir")) {
-                System.out.println("Saliendo del buscador. ¡Hasta luego!");
+                System.out.println("Saliendo del buscador.");
                 break;
             }
 
