@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 public class Buscador {
 
     // Indice invertido construido desde el archivo
-    private static final Map<String, List<DocumentWeight>> invertedIndex = new HashMap<>();
+    private static final Map<String, List<DocumentoPeso>> indiceInvertido = new HashMap<>();
 
     public static void main(String[] args) {
         // Construir el índice desde el archivo en la carpeta "utility"
         try {
-            loadIndexFromFile("utility/indice_invertido.dat");
+            cargarIndexArchivo("utility/indice_invertido.dat");
         } catch (IOException e) {
             System.err.println("Error al cargar el índice invertido: " + e.getMessage());
             return; // Termina el programa si no se puede cargar el archivo
@@ -37,16 +37,16 @@ public class Buscador {
             query = preprocesado.procesar(query);
 
             // Realizar la búsqueda y ranking
-            Map<String, Double> rankedResults = rankDocuments(query);
+            Map<String, Double> rankResultado = rankDocumentos(query);
 
             // Mostrar los resultados
-            displayResults(rankedResults);
+            monstrarResultados(rankResultado);
         }
 
         scanner.close();
     }
 
-    private static void loadIndexFromFile(String fileName) throws IOException {
+    private static void cargarIndexArchivo(String fileName) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -56,47 +56,47 @@ public class Buscador {
     
                 String word = parts[0].toLowerCase(); // Primera parte: palabra clave
                 double idf = Double.parseDouble(parts[1]); // Segunda parte: IDF
-                List<DocumentWeight> documents = new ArrayList<>();
+                List<DocumentoPeso> documents = new ArrayList<>();
     
                 // Procesar documentos-tf asociados
                 for (int i = 2; i < parts.length; i++) {
                     String[] docParts = parts[i].split("-");
                     if (docParts.length > 1) {
-                        String documentName = docParts[0];
+                        String nombreDocumento = docParts[0];
                         double tf = Double.parseDouble(docParts[1]);
-                        documents.add(new DocumentWeight(documentName, tf, idf));
+                        documents.add(new DocumentoPeso(nombreDocumento, tf, idf));
                     }
                 }
     
                 // Agregar al índice invertido
-                invertedIndex.put(word, documents);
+                indiceInvertido.put(word, documents);
             }
         }
     }
 
-    private static Map<String, Double> rankDocuments(String query) {
+    private static Map<String, Double> rankDocumentos(String query) {
         // Crear una instancia del stemmer
         Stemmer stemmer = new Stemmer();
 
         // Determinar el tipo de consulta
-        boolean isAndQuery = query.contains("and");
-        boolean isOrQuery = query.contains("or");
+        boolean esAndQuery = query.contains("and");
+        boolean esOrQuery = query.contains("or");
     
         // Si la consulta tiene AND o OR, dividirla en términos
-        String[] terms;
-        if (isAndQuery) {
-            terms = query.split("\\s*and\\s*");  // Se maneja AND con espacios opcionales
-        } else if (isOrQuery) {
-            terms = query.split("\\s*or\\s*");   // Se maneja OR con espacios opcionales
+        String[] terminos;
+        if (esAndQuery) {
+            terminos = query.split("\\s*and\\s*");  // Se maneja AND con espacios opcionales
+        } else if (esOrQuery) {
+            terminos = query.split("\\s*or\\s*");   // Se maneja OR con espacios opcionales
         } else {
             // Si no contiene AND ni OR, tratamos toda la consulta como un único término
-            terms = new String[]{query.trim()};  // Se toma como un único término
+            terminos = new String[]{query.trim()};  // Se toma como un único término
         }
     
-        Set<String> relevantDocuments = new HashSet<>();
-        Map<String, Double> documentScores = new HashMap<>(); // Para acumular los puntajes
+        Set<String> documentoRelevante = new HashSet<>();
+        Map<String, Double> puntuacionDocumento = new HashMap<>(); // Para acumular los puntajes
     
-        for (String term : terms) {
+        for (String term : terminos) {
             term = term.trim();  // Limpiar posibles espacios extras
     
             if (term.isEmpty()) continue;  // Asegurarse de que no estamos procesando términos vacíos
@@ -106,34 +106,34 @@ public class Buscador {
             stemmer.stem();
             term = stemmer.toString();  // Obtener la raíz del término
     
-            List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
-            Set<String> documentsForTerm = documentWeights.stream()
-                    .map(dw -> dw.documentName)
+            List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
+            Set<String> documentParaTermino = pesoDocumento.stream()
+                    .map(dw -> dw.nombreDocumento)
                     .collect(Collectors.toSet());
     
-            if (isAndQuery) {
+            if (esAndQuery) {
                 // Si es una consulta con AND, hacemos la intersección de documentos
-                if (relevantDocuments.isEmpty()) {
-                    relevantDocuments = new HashSet<>(documentsForTerm);
+                if (documentoRelevante.isEmpty()) {
+                    documentoRelevante = new HashSet<>(documentParaTermino);
                 } else {
-                    relevantDocuments.retainAll(documentsForTerm);
+                    documentoRelevante.retainAll(documentParaTermino);
                 }
-            } else if (isOrQuery) {
+            } else if (esOrQuery) {
                 // Si es una consulta con OR, hacemos la unión de documentos
-                relevantDocuments.addAll(documentsForTerm);
+                documentoRelevante.addAll(documentParaTermino);
             } else {
                 // Implícito OR si no hay operadores
-                relevantDocuments.addAll(documentsForTerm);
+                documentoRelevante.addAll(documentParaTermino);
             }
         }
     
         // Si no hay documentos relevantes, retornar un mapa vacío
-        if (relevantDocuments.isEmpty()) {
+        if (documentoRelevante.isEmpty()) {
             return Collections.emptyMap();
         }
     
         // Calcular puntajes para los documentos relevantes
-        for (String term : terms) {
+        for (String term : terminos) {
             term = term.trim();  // Limpiar espacios
     
             if (term.isEmpty()) continue;  // Saltar si el término está vacío
@@ -143,19 +143,19 @@ public class Buscador {
             stemmer.stem();
             term = stemmer.toString();
     
-            List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
-            for (DocumentWeight docWeight : documentWeights) {
-                if (relevantDocuments.contains(docWeight.documentName)) {
+            List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
+            for (DocumentoPeso docWeight : pesoDocumento) {
+                if (documentoRelevante.contains(docWeight.nombreDocumento)) {
                     // Calcular el puntaje para cada documento
-                    double score = docWeight.tf * docWeight.idf * docWeight.idf;
+                    double score = docWeight.tf * docWeight.idf;
                     // Sumar puntaje al documento sin duplicar
-                    documentScores.merge(docWeight.documentName, score, Double::sum);
+                    puntuacionDocumento.merge(docWeight.nombreDocumento, score, Double::sum);
                 }
             }
         }
     
         // Ordenar los documentos por puntaje en orden descendente
-        return documentScores.entrySet()
+        return puntuacionDocumento.entrySet()
                 .stream()
                 .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
                 .limit(10) // Mostrar solo los 10 mejores resultados
@@ -167,33 +167,33 @@ public class Buscador {
                 ));
     }
 
-    private static double calculateIDF(String term) {
+    private static double calculaIDF(String term) {
         // Obtener los documentos donde aparece el término
-        List<DocumentWeight> documentWeights = invertedIndex.getOrDefault(term, Collections.emptyList());
-        if (documentWeights.isEmpty()) return 0.0;
+        List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
+        if (pesoDocumento.isEmpty()) return 0.0;
 
         // Tomar el IDF del primer documento asociado
-        return documentWeights.get(0).idf;
+        return pesoDocumento.get(0).idf;
     }
 
-    private static void displayResults(Map<String, Double> rankedResults) {
-        if (rankedResults.isEmpty()) {
+    private static void monstrarResultados(Map<String, Double> rankResultado) {
+        if (rankResultado.isEmpty()) {
             System.out.println("No se encontraron documentos relevantes para la consulta.");
         } else {
             System.out.println("Documentos encontrados:");
-            rankedResults.forEach((doc, score) -> System.out.printf("- %s (Score: %.4f)%n", doc, score));
+            rankResultado.forEach((doc, score) -> System.out.printf("- %s (Score: %.4f)%n", doc, score));
         }
     }
 
     // Clase auxiliar para representar un documento y su peso
     // Clase auxiliar para representar un documento, su TF y el IDF del término
-    private static class DocumentWeight {
-    String documentName;
+    private static class DocumentoPeso {
+    String nombreDocumento;
     double tf; // Frecuencia del término en el documento
     double idf; // IDF del término
 
-        DocumentWeight(String documentName, double tf, double idf) {
-            this.documentName = documentName;
+        DocumentoPeso(String nombreDocumento, double tf, double idf) {
+            this.nombreDocumento = nombreDocumento;
             this.tf = tf;
             this.idf = idf;
         }
