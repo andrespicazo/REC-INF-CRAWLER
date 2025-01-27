@@ -142,14 +142,20 @@ public class Buscador {
             stemmer.add(term.toCharArray(), term.length());
             stemmer.stem();
             term = stemmer.toString();
-    
+            
+            // Obtener IDF del término en la consulta (desde el índice)
+            double idf = calculaIDF(term); 
+            double queryTfIdf = 1.0 * idf;
+
+
             List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
             for (DocumentoPeso docWeight : pesoDocumento) {
                 if (documentoRelevante.contains(docWeight.nombreDocumento)) {
-                    // Calcular el puntaje para cada documento
-                    double score = docWeight.tf * docWeight.idf;
-                    // Sumar puntaje al documento sin duplicar
+
+                    // Aqui calculamos la puntuacion de cada documento haciendo la multiplciacion del tf-idf de l docuemnto por el de la consulta
+                    double score = queryTfIdf * docWeight.tf * idf;
                     puntuacionDocumento.merge(docWeight.nombreDocumento, score, Double::sum);
+
                 }
             }
         }
