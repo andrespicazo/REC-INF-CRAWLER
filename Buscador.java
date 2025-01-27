@@ -9,6 +9,9 @@ public class Buscador {
 
     // Indice invertido construido desde el archivo
     private static final Map<String, List<DocumentoPeso>> indiceInvertido = new HashMap<>();
+    //           Mapa que guarda esto:
+    //             - Clave: el termino 
+    //             - Valor:la lLista de documentos que contienen el término, con sus pesos TF-IDF
 
     public static void main(String[] args) {
         // Construir el índice desde el archivo en la carpeta "utility"
@@ -58,13 +61,13 @@ public class Buscador {
                 double idf = Double.parseDouble(parts[1]); // Segunda parte: IDF
                 List<DocumentoPeso> documents = new ArrayList<>();
     
-                // Procesar documentos-tf asociados
+                // Procesar documentos-tf_idf asociados
                 for (int i = 2; i < parts.length; i++) {
                     String[] docParts = parts[i].split("-");
                     if (docParts.length > 1) {
-                        String nombreDocumento = docParts[0];
-                        double tf = Double.parseDouble(docParts[1]);
-                        documents.add(new DocumentoPeso(nombreDocumento, tf, idf));
+                        String nombreDocumento = docParts[0]; // Guarda el documento seguido del tf_idf-idf
+                        double tf_idf = Double.parseDouble(docParts[1]);
+                        documents.add(new DocumentoPeso(nombreDocumento, tf_idf, idf));
                     }
                 }
     
@@ -116,7 +119,7 @@ public class Buscador {
                 if (documentoRelevante.isEmpty()) {
                     documentoRelevante = new HashSet<>(documentParaTermino);
                 } else {
-                    documentoRelevante.retainAll(documentParaTermino);
+                    documentoRelevante.retainAll(documentParaTermino); // Intersección
                 }
             } else if (esOrQuery) {
                 // Si es una consulta con OR, hacemos la unión de documentos
@@ -138,24 +141,18 @@ public class Buscador {
     
             if (term.isEmpty()) continue;  // Saltar si el término está vacío
 
-            // Aplicar stemming nuevamente (si es necesario) antes de calcular puntajes
+            // Aplica steming otra vez antes de calcular puntajes
             stemmer.add(term.toCharArray(), term.length());
             stemmer.stem();
             term = stemmer.toString();
-            
-            // Obtener IDF del término en la consulta (desde el índice)
-            double idf = calculaIDF(term); 
-            double queryTfIdf = 1.0 * idf;
-
 
             List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
             for (DocumentoPeso docWeight : pesoDocumento) {
                 if (documentoRelevante.contains(docWeight.nombreDocumento)) {
 
-                    // Aqui calculamos la puntuacion de cada documento haciendo la multiplciacion del tf-idf de l docuemnto por el de la consulta
-                    double score = queryTfIdf * docWeight.tf * idf;
+                    double score = docWeight.tf_idf * docWeight.idf;
                     puntuacionDocumento.merge(docWeight.nombreDocumento, score, Double::sum);
-
+                    
                 }
             }
         }
@@ -173,14 +170,7 @@ public class Buscador {
                 ));
     }
 
-    private static double calculaIDF(String term) {
-        // Obtener los documentos donde aparece el término
-        List<DocumentoPeso> pesoDocumento = indiceInvertido.getOrDefault(term, Collections.emptyList());
-        if (pesoDocumento.isEmpty()) return 0.0;
 
-        // Tomar el IDF del primer documento asociado
-        return pesoDocumento.get(0).idf;
-    }
 
     private static void monstrarResultados(Map<String, Double> rankResultado) {
         if (rankResultado.isEmpty()) {
@@ -195,12 +185,12 @@ public class Buscador {
     // Clase auxiliar para representar un documento, su TF y el IDF del término
     private static class DocumentoPeso {
     String nombreDocumento;
-    double tf; // Frecuencia del término en el documento
+    double tf_idf; // Frecuencia del término en el documento
     double idf; // IDF del término
 
-        DocumentoPeso(String nombreDocumento, double tf, double idf) {
+        DocumentoPeso(String nombreDocumento, double tf_idf, double idf) {
             this.nombreDocumento = nombreDocumento;
-            this.tf = tf;
+            this.tf_idf = tf_idf;
             this.idf = idf;
         }
     }
